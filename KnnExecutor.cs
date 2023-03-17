@@ -8,9 +8,12 @@ public class KnnExecutor
 {
     public KNN Knn { get; set; }
     
-    public KnnExecutor(KNN knn)
+    private string _outputFolderPath;
+    
+    public KnnExecutor(KNN knn, string outputFolderPath)
     {
         Knn = knn;
+        _outputFolderPath = outputFolderPath;
     }
 
     public void ShowInputData()
@@ -20,5 +23,12 @@ public class KnnExecutor
         Console.ReadLine();
     }
 
+    public void TestData(in IEnumerable<KnnVector<double>> trainingData)
+    {
+        AnsiConsole.MarkupLine("Testowanie modelu k-NN dla zbioru treningowego...");
+        Knn.TestData(in trainingData, checkIntegrityWithAssignedClass: true);
+        AnsiConsole.MarkupLine("[bold yellow]Testowanie modelu k-NN dla zbioru treningowego zakończone. Naciśnij \"enter\" aby wrócić do menu głównego[/]");
+        Console.ReadLine();
+    }
     
 }

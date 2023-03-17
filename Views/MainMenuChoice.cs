@@ -17,12 +17,13 @@ public class MainMenuChoice
         return Name;
     }
     
-    public static MainMenuChoice[] GetMainMenuChoices()
+    public static IEnumerable<MainMenuChoice> GetMainMenuChoices()
     {
         return new[]
         {
             new MainMenuChoice("Tworzenie modelu k-NN [bold blue](<- od tego zacznij)[/]", AppViews.KnnModelCreation),
-            new MainMenuChoice("Testowanie modelu k-NN [bold red](Wymaga stworzenia modelu)[/]", AppViews.KnnModelTesting),
+            new MainMenuChoice("Testowanie modelu k-NN [bold yellow](Wymaga stworzenia modelu)[/]", AppViews.KnnModelTesting),
+            new MainMenuChoice("Wyświetl dane treningowe [bold yellow](Wymaga stworzenia modelu)[/]", AppViews.ShowData),
             new MainMenuChoice("Autorzy", AppViews.Credits),
             new MainMenuChoice("Wyjście", AppViews.Exit)
         };

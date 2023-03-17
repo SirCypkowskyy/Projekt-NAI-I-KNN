@@ -26,6 +26,7 @@ Projekt ma na celu implementację algorytmu k-NN w języku C#. W tym celu użytk
 - ścieżki absolutnej do pliku z danymi uczącymi
 - ścieżki absolutnej do folderu do zapisu wyników klasyfikacji
 - liczby k (ilość najbliższych sąsiadów)
+- (**opcjonalnie**) ścieżki absolutnej do pliku z danymi testowymi
 Użytkownik może podać wskazane argumenty poprzez:
 - wpisanie ich w konsoli przy inicjalizacji modelu k-NN w trakcie działania programu
 - podanie ich jako argumenty wejściowe do programu, w podanej kolejności

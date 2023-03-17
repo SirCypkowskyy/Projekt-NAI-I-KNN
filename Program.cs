@@ -33,11 +33,35 @@ static class Program
 
 
         KnnExecutor = new KnnExecutor(
-            new KNN(k, irisData, new List<KnnVector<double>>())
+            new KNN(k, irisData, new List<KnnVector<double>>()),
+            outputFolderPath
         );
         
         KnnExecutor.ShowInputData();
     }
+
+    public static void InitKnnTesting(string testedDataFilePath)
+    {
+        var txtIrisData = File.ReadAllText(testedDataFilePath);
+        var irisDataRows = txtIrisData.Split('\n');
+
+        var irisDataToTest = (from row in irisDataRows
+                select row.Split(',')
+                into rowValues
+                let rowPointValuesDouble = rowValues.Take(rowValues.Length - 1)
+                    .Select(element => double.Parse(element, NumberStyles.Any, CultureInfo.InvariantCulture))
+                let decisiveAttribute = rowValues.Last() != rowPointValuesDouble.Last().ToString()
+                    ? rowValues.Last()
+                    : null
+                select (decisiveAttribute is null
+                        ? new KnnVector<double>(rowPointValuesDouble, isTrainingVector: true)
+                        : new KnnVector<double>(rowPointValuesDouble, decisiveAttribute, isTrainingVector: true)
+                    )
+            );
+
+        KnnExecutor.TestData(in irisDataToTest);
+    }
+    
     
     public static bool IsKnnModelCreated()
     {

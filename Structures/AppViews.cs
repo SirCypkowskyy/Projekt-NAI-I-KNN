@@ -5,6 +5,7 @@ public enum AppViews
     MainMenu,
     KnnModelCreation,
     KnnModelTesting,
+    ShowData,
     Credits,
     Exit
 }

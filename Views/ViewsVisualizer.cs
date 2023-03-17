@@ -35,11 +35,14 @@ public class ViewsVisualizer
                 VisualiseKnnInit();
                 break;
             case AppViews.KnnModelTesting:
+                VisualiseKnnModelTesting();
                 break;
             case AppViews.Credits:
                 VisualizeCredits();
                 break;
             case AppViews.Exit:
+                break;
+            case AppViews.ShowData:
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(view), view, "Nieznany widok");
@@ -77,6 +80,7 @@ public class ViewsVisualizer
         {
             _mainMenuChoices[0].Name = "Nowy model k-NN";
             _mainMenuChoices[1].Name = "Testowanie modelu k-NN [bold green](gotowe do użycia)[/]";
+            _mainMenuChoices[2].Name = "Wyświetl dane treningowe [bold green](gotowe do użycia)[/]";
             _isKnnModelCreated = true;
         }
         
@@ -172,6 +176,64 @@ public class ViewsVisualizer
         
         Program.InitKnnExecutor(inputDataPath, outputDataFolderPath, kValue);
         LoadView(AppViews.MainMenu);
+    }
+
+    private void VisualiseKnnModelTesting()
+    {
+        if (!Program.IsKnnModelCreated())
+        {
+            AnsiConsole.MarkupLine("[red]Nie można wykonać testowania modelu k-NN, ponieważ nie został on wcześniej utworzony[/]");
+            Thread.Sleep(2000);
+            LoadView(AppViews.MainMenu);
+            return;
+        }
+            
+        var userChoices = new List<string>()
+        {
+            "Wczytaj dane do testowania z pliku ([bold yellow]ręczne wprowadzenie ścieżki[/])",
+            "Wczytaj dane do testowania z konsoli"
+        };
+        
+        var isTestDataPathProvided = _args.Length >= 4;
+        if (isTestDataPathProvided)
+            userChoices.Add("Wczytaj dane do testowania z pliku (argument programu)");
+        
+
+        var userInputChoice = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title("Wybierz opcję [grey](Naciśnij [u]enter[/] aby wybrać daną opcję, używaj strzałek do poruszania się po wyborach)[/]:").PageSize(10)
+                .AddChoices(userChoices)
+                .HighlightStyle(Style.Parse("bold red")
+                )
+        );
+
+        switch (userInputChoice)
+        {
+            case "Wczytaj dane do testowania z pliku ([bold yellow]ręczne wprowadzenie ścieżki[/])":
+                break;
+            case "Wczytaj dane do testowania z konsoli":
+                break;
+            case "Wczytaj dane do testowania z pliku (argument programu)":
+                // Sprawdzanie poprawności ścieżki do pliku z danymi
+                var testDataPath = _args[3];
+                while (!File.Exists(testDataPath))
+                {
+                    AnsiConsole.Clear();
+                    AnsiConsole.MarkupLine("[red]Podana ścieżka jest niepoprawna[/]");
+                    testDataPath = AnsiConsole.Ask<string>("Podaj ponownie absolutną ścieżkę do pliku z danymi do przetestowania: ");
+                }
+                AnsiConsole.Clear();
+                AnsiConsole.MarkupLine("[green]Poprawnie podana ścieżka do pliku z danymi do przetestowania: [/][bold]{0}[/]", testDataPath);
+                Thread.Sleep(2000);
+                AnsiConsole.Clear();
+                Program.InitKnnTesting(testDataPath);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+        
+        LoadView(AppViews.MainMenu);
+
     }
     
     
