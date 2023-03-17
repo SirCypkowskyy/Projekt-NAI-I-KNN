@@ -1,24 +1,25 @@
 ﻿using System.Globalization;
 using System.Text.RegularExpressions;
 using NAI.Projekt.KNN_ConsoleApp_s24759.Algorithms;
+using NAI.Projekt.KNN_ConsoleApp_s24759.Controllers;
 using NAI.Projekt.KNN_ConsoleApp_s24759.Structures;
-using NAI.Projekt.KNN_ConsoleApp_s24759.Views;
 using Spectre.Console;
-using Color = Spectre.Console.Color;
 
 namespace NAI.Projekt.KNN_ConsoleApp_s24759;
 
 static class Program   
 {
-    public static KnnExecutor KnnExecutor { get; set; }
+    public static KNN KnnAlgorithm { get; set; }
+    
+    public static string OutputFolderPath { get; set; }
     
     static void Main(string[] args)
     {
-        var visualizer = new ViewsVisualizer(args);
+        new AppController(args);
     }
 
 
-    public static void InitKnnExecutor(string inputFilePath, string outputFolderPath, int k)
+    public static void InitKnnStartingResources(string inputFilePath, string outputFolderPath, int k)
     {
         var txtIrisData = File.ReadAllText(inputFilePath);
         var irisDataRows = txtIrisData.Split('\n');
@@ -29,22 +30,25 @@ static class Program
             into rowValues
             let rowPointValuesDouble = rowValues.Take(rowValues.Length - 1)
                 .Select(element => double.Parse(element, NumberStyles.Any, CultureInfo.InvariantCulture))
-            select new KnnVector<double>(rowPointValuesDouble, rowValues.Last())).ToList();
-
-
-        KnnExecutor = new KnnExecutor(
-            new KNN(k, irisData, new List<KnnVector<double>>()),
-            outputFolderPath
-        );
+            select new KnnVector<double>(
+                rowPointValuesDouble, 
+                Regex.Replace(rowValues.Last(), "[^a-zA-Z0-9_.]+", "", RegexOptions.Compiled)
+                )).ToList();
         
-        KnnExecutor.ShowInputData();
+
+        KnnAlgorithm = new KNN(k, irisData, new List<KnnVector<double>>());
+        OutputFolderPath = outputFolderPath;
+        
+        KnnAlgorithm.ShowKnnTrainingData();
+        AnsiConsole.MarkupLine("[bold yellow]Dane treningowe zostały wyświetlone. Naciśnij \"enter\" aby wrócić do menu głównego[/]");
+        Console.ReadLine();
     }
 
     public static void InitKnnTesting(string testedDataFilePath)
     {
         var txtIrisData = File.ReadAllText(testedDataFilePath);
         var irisDataRows = txtIrisData.Split('\n');
-
+        
         var irisDataToTest = (from row in irisDataRows
                 select row.Split(',')
                 into rowValues
@@ -59,13 +63,16 @@ static class Program
                     )
             );
 
-        KnnExecutor.TestData(in irisDataToTest);
+        AnsiConsole.MarkupLine("Testowanie modelu k-NN dla zbioru treningowego...");
+        KnnAlgorithm.TestData(in irisDataToTest, checkIntegrityWithAssignedClass: true);
+        AnsiConsole.MarkupLine("[bold yellow]Testowanie modelu k-NN dla zbioru treningowego zakończone. Naciśnij \"enter\" aby wrócić do menu głównego[/]");
+        Console.ReadLine();
     }
     
     
     public static bool IsKnnModelCreated()
     {
-        return KnnExecutor is {Knn.TrainSet.Count: > 0};
+        return KnnAlgorithm is not null && KnnAlgorithm.TrainSet is not null && KnnAlgorithm.TrainSet.Count > 0;
     }
     
 }

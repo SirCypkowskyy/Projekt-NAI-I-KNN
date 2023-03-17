@@ -1,4 +1,6 @@
-﻿using NAI.Projekt.KNN_ConsoleApp_s24759.Structures;
+﻿using System.Windows.Forms;
+using NAI.Projekt.KNN_ConsoleApp_s24759.Forms;
+using NAI.Projekt.KNN_ConsoleApp_s24759.Structures;
 using ScottPlot;
 using Spectre.Console;
 using Style = Spectre.Console.Style;
@@ -83,12 +85,12 @@ public class KNN
         return distances.OrderBy(element => element.Distance).Take(kValue);
     }
     
-    public void TestData(in IEnumerable<KnnVector<double>> testSet, bool testTheWholeSet = false, bool checkIntegrityWithAssignedClass = false, bool appendToTestSet = false)
+    public void TestData(in IEnumerable<KnnVector<double>> testSet, bool testArgumentSetWithExistingTestSet = false, bool checkIntegrityWithAssignedClass = false, bool appendToLocalTestSet = false)
     {
         var testSetCount = testSet.Count();
         
-        if(appendToTestSet)
-            TestSet.AddRange(testSet);
+        if(appendToLocalTestSet)
+            TrainSet.AddRange(testSet);
         
         CheckForTestDataValidity();
         
@@ -97,8 +99,8 @@ public class KNN
         
         var testedVectors = new List<(KnnVector<double> vector, string originalClass, string givenClass)>();
         
-        // jeśli testujemy cały zbiór, to sprawdzamy każdy wektor w TestSet wewnątrz klasy
-        if (testTheWholeSet)
+        // jeśli testujemy cały lokalny zbiór, to sprawdzamy każdy wektor w TestSet wewnątrz klasy
+        if (testArgumentSetWithExistingTestSet)
         {
             TestSet.ForEach(element =>
             {
@@ -130,7 +132,7 @@ public class KNN
                 AnsiConsole.MarkupLine($"Sprawdzono [bold yellow]{currentTestedVector}[/]/{TestSet.Count.ToString()} wektorów");
             });
         }
-        else // jeśli nie, to sprawdzamy tylko testSet podany w argumencie
+        else // jeśli nie, to sprawdzamy tylko testSet podany jako argument funkcji
         {
             testSet.ToList().ForEach(element =>
             {
@@ -167,21 +169,10 @@ public class KNN
         var finalIntegrity = integrityWithAssignedClass / TestSet.Count;
         
         if(checkIntegrityWithAssignedClass)
-            AnsiConsole.MarkupLine($"[bold yellow]Końcowa poprawność klasyfikacji[/]: {integrityWithAssignedClass}/{TestSet.Count} ({Math.Round(finalIntegrity * 100, 2)}%)");
+            AnsiConsole.MarkupLine($"[bold yellow]Końcowa poprawność klasyfikacji[/]: {integrityWithAssignedClass}/{TestSet.Count} ({Math.Round(finalIntegrity * 100, 2).ToString()}%)");
         
         var plt = new Plot(600, 400);
         plt.Title("Rozłożenie wektorów testowych w przestrzeni pierwszych dwóch cech");
-        
-        var colorBasedOnDecisiveAttribute = delegate(KnnVector<double> vector)
-        {
-            return vector.DecisiveAttributeName switch
-            {
-                "Iris-setosa" => System.Drawing.Color.Red,
-                "Iris-versicolor" => System.Drawing.Color.Green,
-                "Iris-virginica" => System.Drawing.Color.Blue,
-                _ => System.Drawing.Color.Black
-            };
-        };
         
         var trainingVectorsSplitByDecisiveAttribute = TrainSet.GroupBy(vector => vector.DecisiveAttributeName);
         var testVectorsSplitByDecisiveAttribute = testedVectors.GroupBy(vector => vector.givenClass);
@@ -204,23 +195,16 @@ public class KNN
                 lineWidth: 0);
         });
         
-        // plt.PlotScatter(testSet.Select(vector => vector[0]).ToArray(), 
-        //     testSet.Select(vector => vector[1]).ToArray(), label: 
-        //     "Wektory testowe", 
-        //     markerSize: 1,
-        //     lineWidth: 0,
-        //     color: colorBasedOnDecisiveAttribute(),
-        //     markerShape: MarkerShape.filledCircle);
-        //
-        // plt.AddScatter(TrainSet.Select(vector => vector[0]).ToArray(), 
-        //     TrainSet.Select(vector => vector[1]).ToArray(), label: 
-        //     "Wektory treningowe", 
-        //     markerSize: 1,
-        //     lineWidth: 0,
-        //     color: System.Drawing.Color.Crimson,
-        //     markerShape: MarkerShape.filledCircle);
         plt.Legend();
-        var win = new ScottPlot.FormsPlotViewer(plt);
+        plt.Style(ScottPlot.Style.Black);
+        var win = new FormsPlotViewer(plt);
+        var button = new Button
+        {
+            Text = "Zamknij",
+            Dock = DockStyle.Bottom
+        };
+        button.Click += (sender, args) => win.Close();
+        win.Controls.Add(button);
         win.ShowDialog();
     }
 
@@ -237,46 +221,28 @@ public class KNN
         }
     }
     
-    public void ShowKnnModelLive()
+    public void ShowKnnTrainingData()
     {
-        var table = new Table().Centered()
-            .BorderStyle(Style.Parse("red"))
-            .Title(new TableTitle("Dane treningowe", new Style(Color.Yellow)));
+        
+        var columnNames = new List<string>();
 
-        AnsiConsole.Live(table)
-            .AutoClear(false)
-            .Start(ctx =>
-            {
-                var inputData = TrainSet;
-                var innerPoints = inputData.First().InnerPoints;
+        var inputData = TrainSet;
+        var innerPoints = inputData.First().InnerPoints;
 
-                for (var i = 0; i < innerPoints.Count; i++)
-                {
-                    var columnNameMarkup = new Markup(((VectorPointsAutoGeneratedNames) i).ToString(), ColumnStyles[i]);
-                    table.AddColumn(new TableColumn(columnNameMarkup).Centered());
-                    ctx.Refresh();
-                    Thread.Sleep(500);
-                }
+        for (var i = 0; i < innerPoints.Count; i++)
+        {
+            var columnName = ((VectorPointsAutoGeneratedNames)i).ToString();
+            columnNames.Add(columnName);
+        }
+        columnNames.Add("Atrybut decyzyjny");
+        
+        var rows = inputData.Select(vector => vector.InnerPoints.Select(point => Math.Round(point, 2).ToString())
+                .ToList()
+                .Append(vector.DecisiveAttributeName))
+            .Select(vectorRow => vectorRow.ToList())
+            .ToList();
 
-                table.AddColumn("Atrybut decyzyjny");
-                ctx.Refresh();
-                Thread.Sleep(600);
-
-
-                foreach (var vector in inputData)
-                {
-                    table.AddRow(
-                        vector.InnerPoints
-                        .Select(point => Math.Round(point, 2).ToString())
-                        .ToList()
-                        .Append(vector.DecisiveAttributeName)
-                        .ToArray()
-                        );
-     
-                    ctx.Refresh();
-                    Thread.Sleep(150);
-                }
-            });
+        new TableForm(columnNames, rows).ShowDialog();
     }
     public static double CalculateEuclideanDistance(KnnVector<double> vectorA, KnnVector<double> vectorB)
     {

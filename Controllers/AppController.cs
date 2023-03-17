@@ -1,9 +1,10 @@
 ﻿using NAI.Projekt.KNN_ConsoleApp_s24759.Structures;
 using Spectre.Console;
+using NAI.Projekt.KNN_ConsoleApp_s24759.Structures;
 
-namespace NAI.Projekt.KNN_ConsoleApp_s24759.Views;
+namespace NAI.Projekt.KNN_ConsoleApp_s24759.Controllers;
 
-public class ViewsVisualizer
+public class AppController
 {
     public AppViews CurrentView { get; private set; }
     
@@ -13,7 +14,7 @@ public class ViewsVisualizer
     
     private bool _isKnnModelCreated = false;
     
-    public ViewsVisualizer(string[] args)
+    public AppController(string[] args)
     {
         _args = args;
 
@@ -43,12 +44,32 @@ public class ViewsVisualizer
             case AppViews.Exit:
                 break;
             case AppViews.ShowData:
+                VisualizeGeneratedData();
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(view), view, "Nieznany widok");
         }
     }
-    
+    private void VisualizeGeneratedData()
+    {
+        if (!_isKnnModelCreated)
+        {
+            AnsiConsole.MarkupLine("[bold red]Nie można wyświetlić danych treningowych, ponieważ nie został stworzony model k-NN[/]");
+            AnsiConsole.MarkupLine("[bold yellow]Naciśnij enter, aby wrócić do menu głównego[/]");
+            Console.ReadLine();
+            LoadView(AppViews.MainMenu);
+            return;
+        }
+
+        AnsiConsole.MarkupLine("[bold green]Wyświetlanie danych treningowych[/]");
+        Program.KnnAlgorithm.ShowKnnTrainingData();
+        Console.WriteLine();
+        AnsiConsole.MarkupLine("[bold yellow]Naciśnij enter, aby wrócić do menu głównego[/]");
+        
+        Console.ReadLine();
+        LoadView(AppViews.MainMenu);
+    }
+
     private static void DisplayAppEntry()
     {
         AnsiConsole.Status()
@@ -68,8 +89,7 @@ public class ViewsVisualizer
         AnsiConsole.MarkupLine("Zakończono.");
         Thread.Sleep(1000);
     }
-
-
+    
     private void VisualiseMainMenu()
     {
         AnsiConsole.Write(new FigletText("K-NN").Centered().Color(Color.Red1));
@@ -78,7 +98,7 @@ public class ViewsVisualizer
 
         if (!_isKnnModelCreated && Program.IsKnnModelCreated())
         {
-            _mainMenuChoices[0].Name = "Nowy model k-NN";
+            _mainMenuChoices[0].Name = "Zmień/Edytuj model k-NN";
             _mainMenuChoices[1].Name = "Testowanie modelu k-NN [bold green](gotowe do użycia)[/]";
             _mainMenuChoices[2].Name = "Wyświetl dane treningowe [bold green](gotowe do użycia)[/]";
             _isKnnModelCreated = true;
@@ -101,7 +121,7 @@ public class ViewsVisualizer
         Thread.Sleep(1000);
         AnsiConsole.Render(Align.Center(new Markup("[bold red]PJATK[/]"), VerticalAlignment.Middle));
         Thread.Sleep(1000);
-        AnsiConsole.Render(Align.Center(new Markup("[bold green]s24759[/]"), VerticalAlignment.Middle));
+        AnsiConsole.Render(Align.Center(new Markup("[bold green]s24759, 17c[/]"), VerticalAlignment.Middle));
         Thread.Sleep(1000);
         AnsiConsole.Render(Align.Center(new Markup("[bold link=https://github.com/SirCypkowskyy]Github[/]([underline]kliknij trzymając ctrl[/])"), VerticalAlignment.Middle));
         
@@ -174,10 +194,19 @@ public class ViewsVisualizer
         Thread.Sleep(2000);
         AnsiConsole.Clear();
         
-        Program.InitKnnExecutor(inputDataPath, outputDataFolderPath, kValue);
+        Program.InitKnnStartingResources(inputDataPath, outputDataFolderPath, kValue);
         LoadView(AppViews.MainMenu);
     }
 
+    private void LoadKnnTestWithFilePath(string path)
+    {
+        AnsiConsole.Clear();
+        AnsiConsole.MarkupLine("[green]Poprawnie podana ścieżka do pliku z danymi do przetestowania: [/][bold]{0}[/]", path);
+        Thread.Sleep(2000);
+        AnsiConsole.Clear();
+        Program.InitKnnTesting(path);
+    }
+    
     private void VisualiseKnnModelTesting()
     {
         if (!Program.IsKnnModelCreated())
@@ -197,8 +226,9 @@ public class ViewsVisualizer
         var isTestDataPathProvided = _args.Length >= 4;
         if (isTestDataPathProvided)
             userChoices.Add("Wczytaj dane do testowania z pliku (argument programu)");
-        
 
+        var testDataPath = string.Empty;
+        
         var userInputChoice = AnsiConsole.Prompt(
             new SelectionPrompt<string>()
                 .Title("Wybierz opcję [grey](Naciśnij [u]enter[/] aby wybrać daną opcję, używaj strzałek do poruszania się po wyborach)[/]:").PageSize(10)
@@ -210,23 +240,27 @@ public class ViewsVisualizer
         switch (userInputChoice)
         {
             case "Wczytaj dane do testowania z pliku ([bold yellow]ręczne wprowadzenie ścieżki[/])":
+                testDataPath = AnsiConsole.Ask<string>("Podaj absolutną ścieżkę do pliku z danymi do przetestowania: ");
+                while (!File.Exists(testDataPath))
+                {
+                    AnsiConsole.Clear();
+                    AnsiConsole.MarkupLine("[red]Podana ścieżka jest niepoprawna![/]");
+                    testDataPath = AnsiConsole.Ask<string>("Podaj ponownie absolutną ścieżkę do pliku z danymi do przetestowania: ");
+                }
+                LoadKnnTestWithFilePath(testDataPath);
                 break;
             case "Wczytaj dane do testowania z konsoli":
                 break;
             case "Wczytaj dane do testowania z pliku (argument programu)":
                 // Sprawdzanie poprawności ścieżki do pliku z danymi
-                var testDataPath = _args[3];
+                testDataPath = _args[3];
                 while (!File.Exists(testDataPath))
                 {
                     AnsiConsole.Clear();
                     AnsiConsole.MarkupLine("[red]Podana ścieżka jest niepoprawna[/]");
                     testDataPath = AnsiConsole.Ask<string>("Podaj ponownie absolutną ścieżkę do pliku z danymi do przetestowania: ");
                 }
-                AnsiConsole.Clear();
-                AnsiConsole.MarkupLine("[green]Poprawnie podana ścieżka do pliku z danymi do przetestowania: [/][bold]{0}[/]", testDataPath);
-                Thread.Sleep(2000);
-                AnsiConsole.Clear();
-                Program.InitKnnTesting(testDataPath);
+                LoadKnnTestWithFilePath(testDataPath);
                 break;
             default:
                 throw new ArgumentOutOfRangeException();

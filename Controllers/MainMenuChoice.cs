@@ -1,6 +1,6 @@
 ﻿using NAI.Projekt.KNN_ConsoleApp_s24759.Structures;
 
-namespace NAI.Projekt.KNN_ConsoleApp_s24759.Views;
+namespace NAI.Projekt.KNN_ConsoleApp_s24759.Controllers;
 public class MainMenuChoice
 {
     public string Name { get; set; }
