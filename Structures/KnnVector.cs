@@ -16,33 +16,22 @@ public class KnnVector<T>
     public string DecisiveAttributeName { get; private set; }
     public int NumberOfPoints => InnerPoints.Count;
     
-    public bool IsTrainingVector { get; private set; }
-
-
-    public KnnVector(bool isTrainingVector)
-    {
-        InnerPoints = new List<T>();
-        IsTrainingVector = isTrainingVector;
-    }
     
-    public KnnVector(string decisiveAttributeName, bool isTrainingVector = false)
+    public KnnVector(string decisiveAttributeName)
     {
         InnerPoints = new List<T>();
         DecisiveAttributeName = decisiveAttributeName;
-        IsTrainingVector = isTrainingVector;
     }
 
-    public KnnVector(IEnumerable<T> innerPointsEnumerable, string decisiveAttributeName, bool isTrainingVector = false)
+    public KnnVector(IEnumerable<T> innerPointsEnumerable, string decisiveAttributeName)
     {
         InnerPoints = innerPointsEnumerable.ToList();
         DecisiveAttributeName = decisiveAttributeName;
-        IsTrainingVector = isTrainingVector;
     }
 
-    public KnnVector(IEnumerable<T> innerPointsEnumerable, bool isTrainingVector = false)
+    public KnnVector(IEnumerable<T> innerPointsEnumerable)
     {
         InnerPoints = innerPointsEnumerable.ToList();
-        IsTrainingVector = isTrainingVector;
     }
     
 

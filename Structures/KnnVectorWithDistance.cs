@@ -13,7 +13,7 @@ public class KnnVectorWithDistance<T>
     
     public override string ToString()
     {
-        return $"Wektor: {Vector}:\nDystans: {Math.Round(Distance, 2)}";
+        return $"Wektor:\n{Vector}:\nDystans: {Math.Round(Distance, 2)}";
     }
     
 }

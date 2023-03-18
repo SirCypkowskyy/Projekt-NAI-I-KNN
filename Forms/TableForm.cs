@@ -44,14 +44,15 @@ public class TableForm : Form
         var lastAddedDecidingAttribute = "";
         var colorsIndex = -1;
         var decidingAttributeColors = new[] {
-            Color.Aquamarine,
             Color.Coral,
-            Color.CornflowerBlue,
             Color.Crimson,
             Color.DarkCyan,
             Color.DarkGoldenrod,
             Color.DarkGreen,
             Color.DarkKhaki,
+            Color.DarkRed,
+            Color.DarkSalmon,
+            Color.DarkSeaGreen,
         };
 
         var vectorValuesColors = new[] {
@@ -72,11 +73,11 @@ public class TableForm : Form
                 lastAddedDecidingAttribute = TableRows[i][TableRows[i].Count - 1];
                 colorsIndex++;
             }
-            WindowDataGrid.Rows[i].Cells[TableRows[i].Count - 1].Style.BackColor = decidingAttributeColors[colorsIndex];
+            WindowDataGrid.Rows[i].Cells[TableRows[i].Count - 1].Style.ForeColor = decidingAttributeColors[colorsIndex];
             for (var j = 0; j < TableRows[i].Count; j++)
             {
                 if(j != TableRows[i].Count - 1)
-                    WindowDataGrid.Rows[i].Cells[j].Style.BackColor = vectorValuesColors[j];
+                    WindowDataGrid.Rows[i].Cells[j].Style.ForeColor = vectorValuesColors[j];
                 
                 WindowDataGrid.Rows[i].Cells[j].Value = TableRows[i][j];
             }
@@ -96,5 +97,7 @@ public class TableForm : Form
         exitButton.Click += (sender, args) => Close();
         Controls.Add(exitButton);
     }
+    
+    
 
 }

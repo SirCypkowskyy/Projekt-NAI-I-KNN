@@ -1,18 +1,15 @@
 ﻿using NAI.Projekt.KNN_ConsoleApp_s24759.Structures;
 using Spectre.Console;
-using NAI.Projekt.KNN_ConsoleApp_s24759.Structures;
 
 namespace NAI.Projekt.KNN_ConsoleApp_s24759.Controllers;
 
 public class AppController
 {
-    public AppViews CurrentView { get; private set; }
-    
     private string[] _args;
     
     private List<MainMenuChoice> _mainMenuChoices = new List<MainMenuChoice>(MainMenuChoice.GetMainMenuChoices());
     
-    private bool _isKnnModelCreated = false;
+    private bool _isKnnModelCreated;
     
     public AppController(string[] args)
     {
@@ -25,7 +22,6 @@ public class AppController
     
     public void LoadView(AppViews view)
     {
-        CurrentView = view;
         AnsiConsole.Clear();
         switch (view)
         {
@@ -115,15 +111,15 @@ public class AppController
 
     private void VisualizeCredits()
     {
-        AnsiConsole.Render(Align.Center(new Markup("[bold red]Autorzy[/]\n"), VerticalAlignment.Middle));
+        AnsiConsole.Write(Align.Center(new Markup("[bold red]Autorzy[/]\n"), VerticalAlignment.Middle));
         Thread.Sleep(1000);
-        AnsiConsole.Render(Align.Center(new Markup("[bold yellow]Cyprian Gburek[/]"), VerticalAlignment.Middle));
+        AnsiConsole.Write(Align.Center(new Markup("[bold yellow]Cyprian Gburek[/]"), VerticalAlignment.Middle));
         Thread.Sleep(1000);
-        AnsiConsole.Render(Align.Center(new Markup("[bold red]PJATK[/]"), VerticalAlignment.Middle));
+        AnsiConsole.Write(Align.Center(new Markup("[bold red]PJATK[/]"), VerticalAlignment.Middle));
         Thread.Sleep(1000);
-        AnsiConsole.Render(Align.Center(new Markup("[bold green]s24759, 17c[/]"), VerticalAlignment.Middle));
+        AnsiConsole.Write(Align.Center(new Markup("[bold green]s24759, 17c[/]"), VerticalAlignment.Middle));
         Thread.Sleep(1000);
-        AnsiConsole.Render(Align.Center(new Markup("[bold link=https://github.com/SirCypkowskyy]Github[/]([underline]kliknij trzymając ctrl[/])"), VerticalAlignment.Middle));
+        AnsiConsole.Write(Align.Center(new Markup("[bold link=https://github.com/SirCypkowskyy]Github[/]([underline]kliknij trzymając ctrl[/])"), VerticalAlignment.Middle));
         
         AnsiConsole.WriteLine("Naciśnij enter, aby wrócić do menu głównego");
         Console.ReadLine();
@@ -131,42 +127,104 @@ public class AppController
     }
     private void VisualiseKnnInit()
     {
+        AnsiConsole.MarkupLine("Witaj w programie do klasyfikacji danych metodą k-NN");
+        Thread.Sleep(1000);
+       
+        string userChoice;
+        var userWantsToResetKnnModel = false;
+
+        // Jeśli model k-NN został już stworzony, to wyświetl możliwości związane z nim
+        if (_isKnnModelCreated)
+        {
+            AnsiConsole.Clear();
+            Thread.Sleep(1000);
+            AnsiConsole.MarkupLine("[bold yellow]Model k-NN został już stworzony[/]");
+            Thread.Sleep(300);
+            AnsiConsole.MarkupLine("Wybierz możliwe opcje:");
+            Thread.Sleep(300);
+            userChoice = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("Wybierz opcję [grey](Naciśnij [u]enter[/] aby wybrać daną opcję, używaj strzałek do poruszania się po wyborach)[/]:")
+                    .AddChoices(new[] {
+                        "Wróć do menu głównego",
+                        "Zresetuj model k-NN"
+                    })
+            );
+            
+            if(userChoice == "Wróć do menu głównego")
+            {
+                LoadView(AppViews.MainMenu);
+                return;
+            }
+            _isKnnModelCreated = false;
+        }
+        
+        var userChoices = new List<string>();
+        
+        if(_args is not null && _args.Length >= 3)
+            userChoices.Add("Wczytaj dane z argumentów programu");
+
+        userChoices.Add("Podaj dane wejściowe programu przez konsolę");
+        
+        AnsiConsole.Clear();
+        
+        AnsiConsole.MarkupLine("Wybierz sposób wprowadzania danych wejściowych programu:");
+        userChoice = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title("Wybierz opcję [grey](Naciśnij [u]enter[/] aby wybrać daną opcję, używaj strzałek do poruszania się po wyborach)[/]:")
+                .AddChoices(userChoices)
+        );
+        
         string inputDataPath;
         string outputDataFolderPath;
         int kValue;
+        int parsedInt;
+        
+        switch (userChoices.IndexOf(userChoice))
+        {
+            case 0:
+                if (_args is null || _args.Length < 3)
+                {
+                    AnsiConsole.MarkupLine("[bold red]Nie można wczytać danych z argumentów programu, ponieważ nie zostały podane[/]");
+                    AnsiConsole.Clear();
+                    goto case 1;
+                }
+                
+                inputDataPath = _args[0];
+                outputDataFolderPath = _args[1];
+                if (!int.TryParse(_args[2], out parsedInt))
+                {
+                    AnsiConsole.Clear();
+                    AnsiConsole.MarkupLine("[red]Podana wartość nie jest liczbą![/]");
+                    while (!int.TryParse(AnsiConsole.Ask<string>("Podaj wartość k: "), out parsedInt))
+                    {
+                        AnsiConsole.Clear();
+                        AnsiConsole.MarkupLine("[red]Podana wartość nie jest liczbą![/]");
+                    }
 
-        // Dla k-NN bez wprowadzonej ścieżki do pliku z danymi
-        if (_args is null || _args.Length < 3)
-        {
-            inputDataPath = AnsiConsole.Ask<string>("Podaj absolutną ścieżkę do pliku z danymi iris: ");
-            outputDataFolderPath = AnsiConsole.Ask<string>("Podaj absolutną ścieżkę do folderu, w którym zostaną zapisane dane: ");
-            int parsedInt;
-            while (!int.TryParse(AnsiConsole.Ask<string>("Podaj wartość k: "), out parsedInt))
-            {
-                AnsiConsole.Clear();
-                AnsiConsole.MarkupLine("[red]Podana wartość nie jest liczbą![/]");
-            }
-            kValue = parsedInt;
-        }
-        else // Dla k-NN z podanymi argumentami do programu
-        {
-            inputDataPath = _args[0];
-            outputDataFolderPath = _args[1];
-            if (!int.TryParse(_args[2], out var parsedInt))
-            {
-                AnsiConsole.Clear();
-                AnsiConsole.MarkupLine("[red]Podana wartość nie jest liczbą![/]");
+                    kValue = parsedInt;
+                }
+                else
+                    kValue = parsedInt;
+                break;
+            case 1:
+                inputDataPath = AnsiConsole.Ask<string>("Podaj absolutną ścieżkę do pliku z danymi iris: ");
+                outputDataFolderPath = AnsiConsole.Ask<string>("Podaj absolutną ścieżkę do folderu, w którym zostaną zapisane dane: ");
                 while (!int.TryParse(AnsiConsole.Ask<string>("Podaj wartość k: "), out parsedInt))
                 {
                     AnsiConsole.Clear();
                     AnsiConsole.MarkupLine("[red]Podana wartość nie jest liczbą![/]");
                 }
-
                 kValue = parsedInt;
-            }
-            else
-                kValue = parsedInt;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(userChoice), userChoice, "Nieznana opcja");
         }
+        
+        AnsiConsole.Clear();
+        AnsiConsole.MarkupLine("Sprawdzanie poprawności ścieżek...");
+        Thread.Sleep(1000);
+        
         
         // Sprawdzanie poprawności ścieżki do pliku z danymi
         while (!File.Exists(inputDataPath))
@@ -184,12 +242,12 @@ public class AppController
             outputDataFolderPath = AnsiConsole.Ask<string>("Podaj ponownie absolutną ścieżkę do folderu, w którym zostaną zapisane dane: ");
         }
         
-        Thread.Sleep(1000);
+        Thread.Sleep(500);
         AnsiConsole.Clear();
         AnsiConsole.MarkupLine("[green]Poprawnie podana ścieżka do pliku z danymi: [/][bold]{0}[/]", inputDataPath);
-        Thread.Sleep(1000);
+        Thread.Sleep(500);
         AnsiConsole.MarkupLine("[green]Poprawnie podana ścieżka do folderu wynikowego: [/][bold]{0}[/]", outputDataFolderPath);
-        Thread.Sleep(1000);
+        Thread.Sleep(500);
         AnsiConsole.MarkupLine("[green]Poprawnie podana wartość k: [/][bold]{0}[/]", kValue);
         Thread.Sleep(2000);
         AnsiConsole.Clear();
@@ -198,14 +256,25 @@ public class AppController
         LoadView(AppViews.MainMenu);
     }
 
-    private void LoadKnnTestWithFilePath(string path)
+    private void LoadKnnTestWithFilePath(string path, bool checkIntegrityWithAssignedClass)
     {
         AnsiConsole.Clear();
         AnsiConsole.MarkupLine("[green]Poprawnie podana ścieżka do pliku z danymi do przetestowania: [/][bold]{0}[/]", path);
         Thread.Sleep(2000);
         AnsiConsole.Clear();
-        Program.InitKnnTesting(path);
+        Program.InitKnnTesting(path, checkIntegrityWithAssignedClass);
     }
+
+    private void LoadKnnTestWithInputData(IEnumerable<KnnVector<double>> inputTestData, bool checkIntegrityWithAssignedClass)
+    {
+        AnsiConsole.Clear();
+        AnsiConsole.MarkupLine("[green]Poprawnie podane dane do przetestowania[/]");
+        Thread.Sleep(2000);
+        AnsiConsole.Clear();
+        Program.InitKnnTesting(inputTestData, checkIntegrityWithAssignedClass);
+    }
+    
+    
     
     private void VisualiseKnnModelTesting()
     {
@@ -227,7 +296,7 @@ public class AppController
         if (isTestDataPathProvided)
             userChoices.Add("Wczytaj dane do testowania z pliku (argument programu)");
 
-        var testDataPath = string.Empty;
+        string testDataPath;
         
         var userInputChoice = AnsiConsole.Prompt(
             new SelectionPrompt<string>()
@@ -237,6 +306,7 @@ public class AppController
                 )
         );
 
+        bool shouldCompareWithDecisiveClass;
         switch (userInputChoice)
         {
             case "Wczytaj dane do testowania z pliku ([bold yellow]ręczne wprowadzenie ścieżki[/])":
@@ -247,9 +317,68 @@ public class AppController
                     AnsiConsole.MarkupLine("[red]Podana ścieżka jest niepoprawna![/]");
                     testDataPath = AnsiConsole.Ask<string>("Podaj ponownie absolutną ścieżkę do pliku z danymi do przetestowania: ");
                 }
-                LoadKnnTestWithFilePath(testDataPath);
+                
+                shouldCompareWithDecisiveClass = AnsiConsole.Confirm("Czy chcesz porównać wyniki z atrybutem decyzyjnym?");
+                
+                LoadKnnTestWithFilePath(testDataPath, shouldCompareWithDecisiveClass);
                 break;
             case "Wczytaj dane do testowania z konsoli":
+                AnsiConsole.Clear();
+                var numberOfTestVectors = AnsiConsole.Ask<int>("Podaj ilość próbek do przetestowania: ");
+                while (numberOfTestVectors <= 1)
+                {
+                    AnsiConsole.Clear();
+                    AnsiConsole.MarkupLine("[red]Podana wartość nie jest liczbą dodatnią lub nie jest równa 1![/]");
+                    numberOfTestVectors = AnsiConsole.Ask<int>("Podaj ilość próbek do przetestowania: ");
+                }
+                
+                shouldCompareWithDecisiveClass = AnsiConsole.Confirm("Czy chcesz porównać wyniki z decyzyjną klasą? ");
+                AnsiConsole.Clear();
+                
+                var testVectors = new List<KnnVector<double>>();
+
+                for (var i = 0; i < numberOfTestVectors; i++)
+                {
+                    AnsiConsole.Clear();
+                    AnsiConsole.MarkupLine("[green]Podaj dane próbki nr {0}[/]", i + 1);
+
+                    var checkInputValidity = delegate(double x, string valueName) {
+                        while (x <= 0)
+                        {
+                            AnsiConsole.Clear();
+                            AnsiConsole.MarkupLine($"[red]Podana wartość {valueName} nie jest liczbą dodatnią![/]");
+                            x = AnsiConsole.Ask<double>("Podaj ponownie wartość: ");
+                        }
+                    };
+                    
+                    var sepalLength = AnsiConsole.Ask<double>("Podaj długość działki (x): ");
+                    checkInputValidity(sepalLength, "długości działki (x)");
+                    var sepalWidth = AnsiConsole.Ask<double>("Podaj szerokość działki (y): ");
+                    checkInputValidity(sepalWidth, "szerokości działki (y)");
+                    var petalLength = AnsiConsole.Ask<double>("Podaj długość płatka (z): ");
+                    checkInputValidity(petalLength, "długości płatka (z)");
+                    var petalWidth = AnsiConsole.Ask<double>("Podaj szerokość płatka (a): ");
+                    checkInputValidity(petalWidth, "szerokości płatka (a)");
+                    var decisiveClass = string.Empty;
+                    var writtenDownDecisiveClass = false;
+                    while (shouldCompareWithDecisiveClass && !writtenDownDecisiveClass)
+                    {
+                        decisiveClass = AnsiConsole.Ask<string>("Podaj decyzyjną klasę próbki: ");
+                        while (string.IsNullOrEmpty(decisiveClass))
+                        {
+                            AnsiConsole.Clear();
+                            AnsiConsole.MarkupLine("[red]Podana wartość nie jest poprawną klasą![/]");
+                            decisiveClass = AnsiConsole.Ask<string>("Podaj ponownie decyzyjną klasę próbki: ");
+                        }
+                        AnsiConsole.MarkupLine("[green]Podana decyzyjna klasa: [/][bold]{0}[/]", decisiveClass);
+                        writtenDownDecisiveClass = AnsiConsole.Confirm("Czy chcesz potwierdzić decyzyjną klasę?");
+                    }
+                    
+                    testVectors.Add(new KnnVector<double>(new[] {sepalLength, sepalWidth, petalLength, petalWidth}, decisiveClass));
+                }
+                
+                LoadKnnTestWithInputData(testVectors, shouldCompareWithDecisiveClass);
+
                 break;
             case "Wczytaj dane do testowania z pliku (argument programu)":
                 // Sprawdzanie poprawności ścieżki do pliku z danymi
@@ -260,7 +389,9 @@ public class AppController
                     AnsiConsole.MarkupLine("[red]Podana ścieżka jest niepoprawna[/]");
                     testDataPath = AnsiConsole.Ask<string>("Podaj ponownie absolutną ścieżkę do pliku z danymi do przetestowania: ");
                 }
-                LoadKnnTestWithFilePath(testDataPath);
+                shouldCompareWithDecisiveClass = AnsiConsole.Confirm("Czy chcesz porównać wyniki z decyzyjną klasą? Klikmij [u]enter[/] aby potwierdzić, [u]spację[/] aby anulować");
+                
+                LoadKnnTestWithFilePath(testDataPath, shouldCompareWithDecisiveClass);
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
