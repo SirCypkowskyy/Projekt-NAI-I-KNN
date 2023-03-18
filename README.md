@@ -13,6 +13,7 @@
 2. [Założenia projektu](#założenia-projektu)
 3. [Wykorzystane biblioteki](#wykorzystane-biblioteki)
 4. [Przykładowe wyniki](#przykładowe-wyniki)
+5. [Uruchamianie projektu](#uruchamianie-projektu)
 
 ## Opis projektu
 
@@ -35,6 +36,10 @@ Użytkownik może podać wskazane argumenty poprzez:
 Projekt wykorzystuje następujące biblioteki:
 - [Spectre.Console](https://spectreconsole.net/) - biblioteka do tworzenia interfejsu użytkownika w konsoli
 - [ScottPlot](https://scottplot.net/) - biblioteka do tworzenia wykresów i grafów w oddzielnym oknie Windows Forms, oraz do zapisu wykresów do oddzielnych plików
-- [LiveCharts2](https://lvcharts.com/) - biblioteka do tworzenia interaktywnych wykresów i grafów w oddzielnym oknie Windows Forms, oraz do zapisu wykresów do oddzielnych plików
 
-## Przykładowe wyniki
+## Uruchamianie projektu
+Projekt można uruchomić poprzez:
+- uruchomienie projektu w dowolnym środowisku programistycznym (np. Visual Studio)
+- komendę `dotnet run` w konsoli w folderze z projektem (wymagane zainstalowanie .NET Core SDK)
+- kompilację projektu do pliku wykonywalnego i uruchomienie go
+- 
