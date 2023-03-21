@@ -137,6 +137,22 @@ public class KNN
             testedVectors.Add((element, element.DecisiveAttributeName, mostPopularClass));
             
             decisiveAttributeTable.AddRow(new Markup(element.DecisiveAttributeName), new Markup(mostPopularClass));
+            
+            var decisiveAttributesWithCount = kNearest.GroupBy(element => element.Vector.DecisiveAttributeName)
+                .Select(group => (group.Key, group.Count()))
+                .OrderByDescending(element => element.Item2);
+            
+            var decisiveAttributesTable = new Table().Centered().BorderStyle(Style.Parse("grey37"));
+            decisiveAttributesTable.Title = new TableTitle("Atrybuty decyzyjne");
+            decisiveAttributesTable.AddColumn(new TableColumn("Atrybut decyzyjny"));
+            decisiveAttributesTable.AddColumn(new TableColumn("Liczba wystąpień"));
+
+            foreach (var pair in decisiveAttributesWithCount)
+            {
+                decisiveAttributesTable.AddRow(new Markup(pair.Item1).Centered(), new Markup(pair.Item2.ToString()).Centered());
+            }
+            
+            AnsiConsole.Write(decisiveAttributesTable);
 
             if (mostPopularClass == element.DecisiveAttributeName)
             {
