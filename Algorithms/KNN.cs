@@ -304,16 +304,19 @@ public class KNN
         
         AnsiConsole.Clear();
         Thread.Sleep(1000);
-        AnsiConsole.MarkupLine($"Wybrano atrybuty [bold yellow]{xAxisEnumChoice}[/] i [bold yellow]{yAxisEnumChoice}[/] dla osi X i Y");
+        AnsiConsole.MarkupLine($"Wybrano atrybuty [bold yellow]{xAxisEnumChoice.ToString().Replace("_", " ")}[/] i [bold yellow]{yAxisEnumChoice.ToString().Replace("_", " ")}[/] dla osi X i Y");
         
         var mergeTrainingAndTestVectors = AnsiConsole.Confirm("Czy chcesz wyświetlić wektory treningowe i testowe o wspólnym atrybucie decyzyjnym razem [blue](y)[/] czy oddzielnie [red](n)[/]?");
         AnsiConsole.MarkupLine("Wyświetlanie wykresu...");
         
         var plt = new Plot(600, 400);
-        plt.Title("Rozłożenie wektorów testowych w przestrzeni pierwszych dwóch cech (kolor - atrybut decyzyjny)");
+        plt.Title("Rozłożenie wybranych dwóch cech wektorów testowych i trenignowych w przestrzeni (kolor - atrybut decyzyjny)");
         plt.Legend();
         plt.Style(ScottPlot.Style.Black);
-        
+
+        plt.XLabel($"{xAxisEnumChoice.ToString().Replace("_", " ")}");
+        plt.YLabel($"{yAxisEnumChoice.ToString().Replace("_", " ")}");
+
         var markerSize = 15;
         
         if (mergeTrainingAndTestVectors)
@@ -371,6 +374,7 @@ public class KNN
             });
 
         }
+        
         
         // wyświetlamy wykres
         
