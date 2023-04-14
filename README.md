@@ -12,8 +12,7 @@
 1. [Opis projektu](#opis-projektu)
 2. [Założenia projektu](#założenia-projektu)
 3. [Wykorzystane biblioteki](#wykorzystane-biblioteki)
-4. [Przykładowe wyniki](#przykładowe-wyniki)
-5. [Uruchamianie projektu](#uruchamianie-projektu)
+4. [Uruchamianie projektu](#uruchamianie-projektu)
 
 ## Opis projektu
 
