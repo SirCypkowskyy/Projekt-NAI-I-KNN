@@ -41,5 +41,3 @@ Projekt wykorzystuje następujące biblioteki:
 Projekt można uruchomić poprzez:
 - uruchomienie projektu w dowolnym środowisku programistycznym (np. Visual Studio)
 - komendę `dotnet run` w konsoli w folderze z projektem (wymagane zainstalowanie .NET Core SDK)
-- kompilację projektu do pliku wykonywalnego i uruchomienie go
-- 
